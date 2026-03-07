@@ -3,15 +3,24 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class AuthRepository {
   final _supabase = Supabase.instance.client;
 
-  Future<AuthResponse> signIn(String phone, String password) async {
-    // Note: Supabase standard auth uses email.
-    // If you use phone + password, you might need to format it as email for backend
-    // Or use Supabase custom phone auth if configured.
-    final email = '$phone@safeseat.com';
-
+  Future<AuthResponse> signIn(String email, String password) async {
     return await _supabase.auth.signInWithPassword(
       email: email,
       password: password,
+    );
+  }
+
+  Future<AuthResponse> signUp({
+    required String email,
+    required String password,
+    required String fullName,
+    required String phone,
+    required String gender,
+  }) async {
+    return await _supabase.auth.signUp(
+      email: email,
+      password: password,
+      data: {'full_name': fullName, 'phone': phone, 'gender': gender},
     );
   }
 
