@@ -20,7 +20,11 @@ class AuthRepository {
     return await _supabase.auth.signUp(
       email: email,
       password: password,
-      data: {'full_name': fullName, 'phone': phone, 'gender': gender},
+      data: {
+        'full_name': fullName,
+        'phone': phone,
+        'gender': int.tryParse(gender) ?? 0,
+      },
     );
   }
 

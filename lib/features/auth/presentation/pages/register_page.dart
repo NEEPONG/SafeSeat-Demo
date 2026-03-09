@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../core/widgets/app_loader.dart';
 import '../../data/auth_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -75,7 +77,7 @@ class _RegisterPageState extends State<RegisterPage> {
         password: _passwordController.text.trim(),
         fullName: _fullNameController.text.trim(),
         phone: _phoneController.text.trim(),
-        gender: genderId,
+        gender: genderId, // this is a string "0", "1", "2"
       );
 
       if (mounted) {
@@ -105,61 +107,41 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: AppColors.textPrimary,
+          ),
+          onPressed: () {
+            if (_currentPage > 0) {
+              _pageController.previousPage(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              );
+            } else {
+              Navigator.pop(context);
+            }
+          },
+        ),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildProgressIndicator(0),
+            const SizedBox(width: 8),
+            _buildProgressIndicator(1),
+          ],
+        ),
+        centerTitle: true,
+      ),
       body: SafeArea(
         child: Column(
           children: [
-            // Header with Back and Page Indicators
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    icon: const Icon(
-                      Icons.arrow_back,
-                      color: Color.fromARGB(255, 255, 255, 255),
-                    ),
-                    onPressed: () {
-                      if (_currentPage > 0) {
-                        _pageController.previousPage(
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                        );
-                      } else {
-                        Navigator.pop(context);
-                      }
-                    },
-                  ),
-                  Row(
-                    children: [
-                      Container(
-                        width: 10,
-                        height: 10,
-                        decoration: BoxDecoration(
-                          color: _currentPage == 0
-                              ? Colors.blue
-                              : Colors.grey[300],
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        width: 10,
-                        height: 10,
-                        decoration: BoxDecoration(
-                          color: _currentPage == 1
-                              ? Colors.blue
-                              : Colors.grey[300],
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(width: 48), // Spacer to balance back button
-                ],
-              ),
-            ),
             Expanded(
               child: PageView(
                 controller: _pageController,
@@ -167,7 +149,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 onPageChanged: (page) {
                   setState(() => _currentPage = page);
                 },
-                children: [_buildStep1(), _buildStep2()],
+                children: [_buildStep1(theme), _buildStep2(theme)],
               ),
             ),
           ],
@@ -176,81 +158,83 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  Widget _buildStep1() {
-    return Padding(
+  Widget _buildProgressIndicator(int index) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      width: _currentPage == index ? 24 : 8,
+      height: 8,
+      decoration: BoxDecoration(
+        color: _currentPage == index ? AppColors.primary : Colors.grey[300],
+        borderRadius: BorderRadius.circular(4),
+      ),
+    );
+  }
+
+  Widget _buildStep1(ThemeData theme) {
+    return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 32),
-          const Text(
-            'STEP 1 OF 2',
-            style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'สร้างบัญชีผู้ใช้ของคุณ',
-            style: TextStyle(
-              fontSize: 24,
+          const SizedBox(height: 24),
+          Text(
+            'ขั้นตอนที่ 1 จาก 2', // Step 1 of 2
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: AppColors.primary,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              letterSpacing: 1.2,
             ),
           ),
-          const SizedBox(height: 16),
-          const Text(
-            'กรุณาป้อนหมายเลขโทรศัพท์มือถือของคุณเพื่อเริ่มต้น เราจะส่งรหัสยืนยันให้คุณเพื่อรักษาความปลอดภัยบัญชีของคุณ',
-            style: TextStyle(color: Colors.grey),
-          ),
-          const SizedBox(height: 32),
-          const Text(
-            'เบอร์มือถือ',
-            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-          ),
           const SizedBox(height: 8),
+          Text(
+            'สร้างบัญชีผู้ใช้ใหม่', // Create new account
+            style: theme.textTheme.headlineMedium,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'กรุณาป้อนหมายเลขโทรศัพท์มือถือของคุณเพื่อเริ่มต้น เราจะส่งรหัสยืนยันให้คุณเพื่อความปลอดภัย',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: AppColors.textPrimary.withAlpha(180),
+            ),
+          ),
+          const SizedBox(height: 40),
+          Text('เบอร์มือถือ', style: theme.textTheme.titleMedium),
+          const SizedBox(height: 12),
           _buildTextField(
             controller: _phoneController,
             hintText: '081-234-5678',
             keyboardType: TextInputType.phone,
+            prefixIcon: Icons.phone_android_rounded,
           ),
-          const Spacer(),
-          const Text.rich(
+          const SizedBox(height: 60),
+          ElevatedButton(
+            onPressed: _nextPage,
+            child: const Text('ดำเนินการต่อ'),
+          ),
+          const SizedBox(height: 24),
+          Text.rich(
             TextSpan(
-              text: 'เมื่อดำเนินการต่อหมายถึงคุณยอมรับ',
+              text: 'เมื่อดำเนินการต่อหมายถึงคุณยอมรับ ',
+              style: theme.textTheme.bodySmall,
               children: [
                 TextSpan(
                   text: 'ข้อกำหนดในการใช้บริการ',
-                  style: TextStyle(color: Colors.blue),
+                  style: const TextStyle(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                TextSpan(text: 'และ'),
+                const TextSpan(text: ' และ '),
                 TextSpan(
                   text: 'นโยบายความเป็นส่วนตัว',
-                  style: TextStyle(color: Colors.blue),
+                  style: const TextStyle(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                TextSpan(text: 'ของเรา'),
               ],
             ),
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 12, color: Colors.grey),
-          ),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            height: 56,
-            child: ElevatedButton(
-              onPressed: _nextPage,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(
-                  0xFF2E2E2E,
-                ), // Dark grey like image
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: const Text(
-                'ดำเนินการต่อ',
-                style: TextStyle(color: Colors.white, fontSize: 16),
-              ),
-            ),
           ),
           const SizedBox(height: 24),
         ],
@@ -258,69 +242,58 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  Widget _buildStep2() {
+  Widget _buildStep2(ThemeData theme) {
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 32),
-          const Text(
-            'FINAL STEP',
-            style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'ตั้งค่าโปรไฟล์ของคุณ',
-            style: TextStyle(
-              fontSize: 24,
+          const SizedBox(height: 24),
+          Text(
+            'ขั้นตอนสุดท้าย', // Final step
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: AppColors.primary,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              letterSpacing: 1.2,
             ),
           ),
+          const SizedBox(height: 8),
+          Text(
+            'ตั้งค่าโปรไฟล์ของคุณ', // Set up your profile
+            style: theme.textTheme.headlineMedium,
+          ),
           const SizedBox(height: 12),
-          const Text(
-            'นี่เป็นเพียงรายละเอียดเพิ่มเติมเล็กน้อยที่จะช่วยให้คุณ\nเดินทางได้อย่างปลอดภัย',
-            style: TextStyle(color: Colors.grey),
+          Text(
+            'กรอกรายละเอียดเพิ่มเติมเล็กน้อยเพื่อเริ่มต้นการเดินทางที่ปลอดภัยกับเรา',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: AppColors.textPrimary.withAlpha(180),
+            ),
           ),
           const SizedBox(height: 32),
-          const Text(
-            'ชื่อ-นามสกุล',
-            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-          ),
-          const SizedBox(height: 8),
+          _buildLabel('ชื่อ-นามสกุล', theme),
           _buildTextField(
             controller: _fullNameController,
-            hintText: 'โปรดกรอกชื่อของคุณ',
+            hintText: 'โปรดกรอกชื่อและนามสกุลจริง',
+            prefixIcon: Icons.person_outline_rounded,
           ),
-          const SizedBox(height: 16),
-          const Text(
-            'เพศ',
-            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-          ),
-          const SizedBox(height: 8),
-          _buildGenderDropdown(),
-          const SizedBox(height: 16),
-          const Text(
-            'อีเมล (ไม่บังคับ)',
-            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-          ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 20),
+          _buildLabel('เพศ', theme),
+          _buildGenderDropdown(theme),
+          const SizedBox(height: 20),
+          _buildLabel('อีเมล (ถ้ามี)', theme),
           _buildTextField(
             controller: _emailController,
             hintText: 'example@gmail.com',
             keyboardType: TextInputType.emailAddress,
+            prefixIcon: Icons.email_outlined,
           ),
-          const SizedBox(height: 16),
-          const Text(
-            'รหัสผ่าน*',
-            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-          ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 20),
+          _buildLabel('รหัสผ่าน', theme),
           _buildTextField(
             controller: _passwordController,
-            hintText: 'password',
+            hintText: 'ตั้งรหัสผ่านของคุณ',
             obscureText: true,
+            prefixIcon: Icons.lock_outline_rounded,
           ),
           const SizedBox(height: 24),
           Row(
@@ -328,118 +301,69 @@ class _RegisterPageState extends State<RegisterPage> {
               Checkbox(
                 value: _acceptTerms,
                 onChanged: (val) => setState(() => _acceptTerms = val ?? false),
-                activeColor: Colors.blue,
               ),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'ยอมรับข้อกำหนดและนโยบาย',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    Text(
-                      'กรุณาอ่านก่อนกดยอมรับ',
-                      style: TextStyle(color: Colors.grey, fontSize: 12),
-                    ),
-                  ],
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => setState(() => _acceptTerms = !_acceptTerms),
+                  child: Text(
+                    'ฉันยอมรับข้อกำหนดและนโยบายความเป็นส่วนตัว',
+                    style: theme.textTheme.bodySmall,
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 32),
-          const Text.rich(
-            TextSpan(
-              text: 'เมื่อดำเนินการต่อหมายถึงคุณยอมรับ',
-              children: [
-                TextSpan(
-                  text: 'ข้อกำหนดในการใช้บริการ',
-                  style: TextStyle(color: Colors.blue),
-                ),
-                TextSpan(text: 'และ'),
-                TextSpan(
-                  text: 'นโยบายความเป็นส่วนตัว',
-                  style: TextStyle(color: Colors.blue),
-                ),
-                TextSpan(text: 'ของเรา'),
-              ],
-            ),
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 12, color: Colors.grey),
+          ElevatedButton(
+            onPressed: _isLoading ? null : _handleSignUp,
+            child: _isLoading
+                ? AppLoader.buttonLoader()
+                : const Text('เริ่มใช้งานเลย'),
           ),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            height: 56,
-            child: ElevatedButton(
-              onPressed: _isLoading ? null : _handleSignUp,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2E2E2E),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: _isLoading
-                  ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text(
-                      'เริ่มใช้งานเลย',
-                      style: TextStyle(color: Colors.white, fontSize: 16),
-                    ),
-            ),
-          ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 40),
         ],
       ),
+    );
+  }
+
+  Widget _buildLabel(String text, ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Text(text, style: theme.textTheme.titleMedium),
     );
   }
 
   Widget _buildTextField({
     required TextEditingController controller,
     required String hintText,
+    IconData? prefixIcon,
     bool obscureText = false,
     TextInputType keyboardType = TextInputType.text,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[300]!),
-      ),
-      child: TextField(
-        controller: controller,
-        obscureText: obscureText,
-        keyboardType: keyboardType,
-        style: const TextStyle(color: Colors.black),
-        decoration: InputDecoration(
-          hintText: hintText,
-          hintStyle: TextStyle(color: Colors.grey[400]),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 16,
-          ),
-        ),
+    return TextField(
+      controller: controller,
+      obscureText: obscureText,
+      keyboardType: keyboardType,
+      style: Theme.of(context).textTheme.bodyLarge,
+      decoration: InputDecoration(
+        hintText: hintText,
+        prefixIcon: prefixIcon != null ? Icon(prefixIcon) : null,
       ),
     );
   }
 
-  Widget _buildGenderDropdown() {
+  Widget _buildGenderDropdown(ThemeData theme) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[300]!),
+        color: AppColors.inputBackground,
+        borderRadius: BorderRadius.circular(16),
       ),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: _selectedGender,
           isExpanded: true,
-          dropdownColor: Colors.white,
-          style: const TextStyle(color: Colors.black, fontSize: 16),
+          icon: const Icon(Icons.keyboard_arrow_down_rounded),
           onChanged: (String? newValue) {
             setState(() => _selectedGender = newValue!);
           },
@@ -447,7 +371,7 @@ class _RegisterPageState extends State<RegisterPage> {
             (String value) {
               return DropdownMenuItem<String>(
                 value: value,
-                child: Text(value, style: const TextStyle(color: Colors.black)),
+                child: Text(value, style: theme.textTheme.bodyLarge),
               );
             },
           ).toList(),

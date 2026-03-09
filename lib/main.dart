@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Safe Seat',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.darkTheme,
+      theme: AppTheme.lightTheme,
       home: const LoginPage(),
     );
   }
