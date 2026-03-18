@@ -3,6 +3,8 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/app_loader.dart';
 import '../../data/auth_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:cherry_toast/cherry_toast.dart';
+import 'package:cherry_toast/resources/arrays.dart';
 import 'register_page.dart';
 import '../../../home/presentation/pages/main_page.dart';
 
@@ -32,9 +34,11 @@ class _LoginPageState extends State<LoginPage> {
     final password = _passwordController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('กรุณากรอกอีเมลและรหัสผ่าน')),
-      );
+      CherryToast.warning(
+        title: const Text('กรุณากรอกข้อมูล', style: TextStyle(fontWeight: FontWeight.bold)),
+        description: const Text('กรุณากรอกอีเมลและรหัสผ่าน'),
+        animationType: AnimationType.fromTop,
+      ).show(context);
       return;
     }
 
@@ -43,9 +47,13 @@ class _LoginPageState extends State<LoginPage> {
     try {
       await _authRepository.signIn(email, password);
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('เข้าสู่ระบบสำเร็จ!')));
+        CherryToast.success(
+          title: const Text('สำเร็จ', style: TextStyle(fontWeight: FontWeight.bold)),
+          description: const Text('เข้าสู่ระบบสำเร็จ!'),
+          animationType: AnimationType.fromTop,
+          autoDismiss: true,
+        ).show(context);
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const MainPage()),
@@ -53,15 +61,19 @@ class _LoginPageState extends State<LoginPage> {
       }
     } on AuthException catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.message)));
+        CherryToast.error(
+          title: const Text('เข้าสู่ระบบไม่สำเร็จ', style: TextStyle(fontWeight: FontWeight.bold)),
+          description: Text(e.message),
+          animationType: AnimationType.fromTop,
+        ).show(context);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('เกิดข้อผิดพลาดในการเข้าสู่ระบบ')),
-        );
+        CherryToast.error(
+          title: const Text('เกิดข้อผิดพลาด', style: TextStyle(fontWeight: FontWeight.bold)),
+          description: const Text('กรุณาตรวจสอบการเชื่อมต่อของคุณ'),
+          animationType: AnimationType.fromTop,
+        ).show(context);
       }
     } finally {
       if (mounted) {

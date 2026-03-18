@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../domain/user_profile_model.dart';
+import '../domain/vehicle_model.dart';
 
 class ProfileRepository {
   final _supabase = Supabase.instance.client;
@@ -18,22 +19,56 @@ class ProfileRepository {
     final response = await _supabase
         .from('profiles')
         .select()
-        .eq('id', user.id);
+        .eq('id', user.id)
+        .single();
     print("DEBUG: Response data: $response");
 
     if (response.isEmpty) return null;
-    return UserProfile.fromMap(response.first);
+    return UserProfile.fromMap(response);
   }
 
-  /// สตรีมข้อมูลเพื่อให้อัปเดตเงินในกระเป๋าตลอดเวลา
-  Stream<Map<String, dynamic>> profileStream() {
+  Future<void> updateUserProfile({
+    required String name,
+    required String phoneNo,
+    required int gender,
+    required String mainAddress,
+  }) async {
     final user = _supabase.auth.currentUser;
-    if (user == null) return const Stream.empty();
+    if (user == null) throw Exception('User not logged in');
 
-    return _supabase
-        .from('profiles')
-        .stream(primaryKey: ['id'])
-        .eq('id', user.id)
-        .map((list) => list.isNotEmpty ? list.first : {});
+    await _supabase.from('profiles').update({
+      'name': name,
+      'phone_no': phoneNo,
+      'gender': gender,
+      'main_address': mainAddress,
+      'updated_at': DateTime.now().toIso8601String(),
+    }).eq('id', user.id);
+  }
+
+  Future<List<Vehicle>> getVehicles() async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return [];
+
+    final response = await _supabase
+        .from('usercar')
+        .select()
+        .eq('userId', user.id); // Fixed: using userId as shown in schema
+
+    return (response as List).map((json) => Vehicle.fromJson(json)).toList();
+  }
+
+  Future<List<VehicleType>> getVehicleTypes() async {
+    final response = await _supabase.from('cartype').select();
+    return (response as List).map((json) => VehicleType.fromJson(json)).toList();
+  }
+
+  Future<void> addVehicle(Map<String, dynamic> vehicleData) async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) throw Exception('User not logged in');
+
+    // Add user ID to vehicle data using the correct column name 'userId'
+    vehicleData['userId'] = user.id;
+
+    await _supabase.from('usercar').insert(vehicleData);
   }
 }

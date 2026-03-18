@@ -4,6 +4,7 @@ import '../../../../core/widgets/app_loader.dart';
 import '../../data/home_repository.dart';
 import '../../domain/user_profile_model.dart';
 import 'package:intl/intl.dart';
+import 'profile_page.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -14,12 +15,25 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   final _profileRepository = ProfileRepository();
+  late Future<UserProfile?> _profileFuture;
   int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshProfile();
+  }
+
+  void _refreshProfile() {
+    setState(() {
+      _profileFuture = _profileRepository.getUserProfile();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<UserProfile?>(
-      future: _profileRepository.getUserProfile(),
+      future: _profileFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Scaffold(body: Center(child: AppLoader.loadingScreen()));
@@ -34,33 +48,50 @@ class _MainPageState extends State<MainPage> {
           );
         }
 
-        return Scaffold(
-          body: SafeArea(
-            bottom: false,
-            child: Column(
-              children: [
-                _buildHeader(profile),
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        _buildBanner(),
-                        _buildQuickActions(),
-                        _buildPromoSection(),
-                        _buildWalletSection(profile),
-                        const SizedBox(height: 32), // Reduced spacing
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
+        // Define pages based on index
+        final List<Widget> pages = [
+          _buildHomeContent(profile), // Index 0
+          const Center(child: Text('กิจกรรม')), // Index 1 (Placeholder)
+          const Center(child: Text('กระเป๋าเงิน')), // Index 2 (Placeholder)
+          ProfilePage( // Index 3
+            profile: profile,
+            onBackTap: () {
+              _refreshProfile();
+              setState(() => _currentIndex = 0);
+            },
           ),
+        ];
+
+        return Scaffold(
+          body: pages[_currentIndex],
           bottomNavigationBar: _buildBottomNavBar(),
-          floatingActionButtonLocation:
-              FloatingActionButtonLocation.centerDocked,
+          floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
         );
       },
+    );
+  }
+
+  Widget _buildHomeContent(UserProfile profile) {
+    return SafeArea(
+      bottom: false,
+      child: Column(
+        children: [
+          _buildHeader(profile),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  _buildBanner(),
+                  _buildQuickActions(),
+                  _buildPromoSection(),
+                  _buildWalletSection(profile),
+                  const SizedBox(height: 32),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

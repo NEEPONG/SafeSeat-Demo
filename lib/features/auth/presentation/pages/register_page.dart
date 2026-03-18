@@ -3,6 +3,8 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/app_loader.dart';
 import '../../data/auth_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:cherry_toast/cherry_toast.dart';
+import 'package:cherry_toast/resources/arrays.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -36,9 +38,11 @@ class _RegisterPageState extends State<RegisterPage> {
 
   void _nextPage() {
     if (_currentPage == 0 && _phoneController.text.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('กรุณากรอกหมายเลขโทรศัพท์')));
+      CherryToast.warning(
+        title: const Text('ยังทำไม่เสร็จ', style: TextStyle(fontWeight: FontWeight.bold)),
+        description: const Text('กรุณากรอกหมายเลขโทรศัพท์'),
+        animationType: AnimationType.fromRight,
+      ).show(context);
       return;
     }
     _pageController.nextPage(
@@ -49,18 +53,22 @@ class _RegisterPageState extends State<RegisterPage> {
 
   Future<void> _handleSignUp() async {
     if (!_acceptTerms) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('กรุณายอมรับข้อกำหนดและนโยบาย')),
-      );
+      CherryToast.warning(
+        title: const Text('ยอมรับเงื่อนไข', style: TextStyle(fontWeight: FontWeight.bold)),
+        description: const Text('กรุณายอมรับข้อกำหนดและนโยบาย'),
+        animationType: AnimationType.fromRight,
+      ).show(context);
       return;
     }
 
     if (_fullNameController.text.isEmpty ||
         _emailController.text.isEmpty ||
         _passwordController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('กรุณากรอกข้อมูลให้ครบถ้วน')),
-      );
+      CherryToast.warning(
+        title: const Text('ข้อมูลไม่ครบ', style: TextStyle(fontWeight: FontWeight.bold)),
+        description: const Text('กรุณากรอกข้อมูลให้ครบถ้วน'),
+        animationType: AnimationType.fromRight,
+      ).show(context);
       return;
     }
 
@@ -81,22 +89,28 @@ class _RegisterPageState extends State<RegisterPage> {
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('สมัครสมาชิกสำเร็จ!')));
+        CherryToast.success(
+          title: const Text('สำเร็จ', style: TextStyle(fontWeight: FontWeight.bold)),
+          description: const Text('สมัครสมาชิกสำเร็จ!'),
+          animationType: AnimationType.fromRight,
+        ).show(context);
         Navigator.pop(context);
       }
     } on AuthException catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.message)));
+        CherryToast.error(
+          title: const Text('สมัครสมาชิกไม่สำเร็จ', style: TextStyle(fontWeight: FontWeight.bold)),
+          description: Text(e.message),
+          animationType: AnimationType.fromRight,
+        ).show(context);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('เกิดข้อผิดพลาดในการสมัครสมาชิก')),
-        );
+        CherryToast.error(
+          title: const Text('เกิดข้อผิดพลาด', style: TextStyle(fontWeight: FontWeight.bold)),
+          description: const Text('กรุณาลองใหม่อีกครั้ง'),
+          animationType: AnimationType.fromRight,
+        ).show(context);
       }
     } finally {
       if (mounted) {
